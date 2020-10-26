@@ -1,0 +1,72 @@
+/*
+ * Copyright 2018 ThoughtWorks, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'java'
+
+group = 'com.vijayakumar.gocd'
+version = '0.1-SNAPSHOT'
+
+// these values that go into plugin.xml
+project.ext.pluginDesc = [
+        id         : 'com.vijayakumar.gocd.buildnotification',
+        version    : project.version,
+        goCdVersion: '16.2.1',
+        name       : 'A plugin to trigger build notifica',
+        description: 'This plugin triggers build notifications to webhook urls',
+        vendorName : 'Acme Corp',
+        vendorUrl  : 'https://github.com/gvijayakumar-16/gocd-build-notifications.git'
+]
+
+// Force 1.7 compatibility to ensure that it works with older JVMs
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly group: 'cd.go.plugin', name: 'go-plugin-api', version: project.pluginDesc.goCdVersion
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
+    compile group: 'org.json', name: 'json', version: '20190722'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '3.1.0'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '2.1'
+    testCompile group: 'cd.go.plugin', name: 'go-plugin-api', version: project.pluginDesc.goCdVersion
+}
+
+processResources {
+    from("src/main/resource-templates") {
+        filesMatching('plugin.xml') {
+            expand project.pluginDesc
+        }
+
+        filesMatching('plugin.properties') {
+            expand project.pluginDesc
+        }
+    }
+}
+
+jar {
+    from(configurations.compile) {
+        into "lib/"
+    }
+}
