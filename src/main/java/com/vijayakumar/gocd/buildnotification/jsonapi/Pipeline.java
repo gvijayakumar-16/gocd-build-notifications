@@ -57,7 +57,7 @@ public class Pipeline {
     @Override
     public String toString() {
         if (stages != null && stages.length > 0) {
-            return name + "/" + counter + "/" + stages[0].name + "/" + stages[0].result;
+            return name + "/" + counter + "/" + stages[0].name + "/" + stages[0].counter + " triggered by " + buildCause.triggerMessage;
         } else {
             return name + "/" + counter;
         }

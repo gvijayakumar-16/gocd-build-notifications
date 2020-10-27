@@ -17,6 +17,7 @@ import com.thoughtworks.go.plugin.api.response.GoPluginApiResponse;
 import com.thoughtworks.go.plugin.api.logging.Logger;
 
 import com.google.gson.GsonBuilder;
+import org.json.JSONObject;
 
 import static com.vijayakumar.gocd.buildnotification.Constants.PLUGIN_IDENTIFIER;
 
@@ -71,20 +72,20 @@ public class WebhookPlugin implements GoPlugin {
         Configuration config = Configuration.getCurrent();
 
         GoNotificationMessage message = parseNotificationMessage(request);
-        
-        
-        // Describe the build.
+        String additionalDetails = "";
         try {
+            int DEFAULT_MAX_CHANGES_PER_MATERIAL_IN_SLACK = 5;
             Pipeline details = message.fetchDetails();
             Stage stage = pickCurrentStage(details.stages, message);
-            LOGGER.info(message.fullyQualifiedJobName() + " has " + message.getStageState() + "/" + message.getStageResult() + "," + details.buildCause.approver + "," + stage.approvedBy + "," + details.buildCause.triggerMessage);
-            // build_test/7/build_test_build_stage/1 has Passed/Passed,,changes,modified by Vijayakumar <email@gmail.com>
+            additionalDetails = details.toString();
         } catch (Exception e) {
             LOGGER.info(String.format("Couldn't fetch build details %s", e.toString()));
         }
-
-
-        return new WebhookRequestExecutor(config.getClient(), config.getStageEndpoints(), request.requestBody());
+        
+        String jsonDataString = request.requestBody();
+        JSONObject mainObject = new JSONObject(jsonDataString);
+        mainObject.accumulate("AdditionalDetails", additionalDetails);
+        return new WebhookRequestExecutor(config.getClient(), config.getStageEndpoints(), mainObject.toString());
     }
 
     private Stage pickCurrentStage(Stage[] stages, GoNotificationMessage message) {
