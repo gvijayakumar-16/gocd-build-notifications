@@ -72,19 +72,17 @@ public class WebhookPlugin implements GoPlugin {
         Configuration config = Configuration.getCurrent();
 
         GoNotificationMessage message = parseNotificationMessage(request);
-        String additionalDetails = "";
+        JSONObject additionalDetails = new JSONObject();
         try {
-            int DEFAULT_MAX_CHANGES_PER_MATERIAL_IN_SLACK = 5;
             Pipeline details = message.fetchDetails();
-            Stage stage = pickCurrentStage(details.stages, message);
-            additionalDetails = details.toString();
+            additionalDetails = new JSONObject(new GsonBuilder().create().toJson(details));
         } catch (Exception e) {
             LOGGER.info(String.format("Couldn't fetch build details %s", e.toString()));
         }
         
         String jsonDataString = request.requestBody();
         JSONObject mainObject = new JSONObject(jsonDataString);
-        mainObject.accumulate("AdditionalDetails", additionalDetails);
+        mainObject.put("AdditionalDetails", additionalDetails);
         return new WebhookRequestExecutor(config.getClient(), config.getStageEndpoints(), mainObject.toString());
     }
 
